@@ -1,6 +1,7 @@
 (ns pedestal-example.service
   (:require [io.pedestal.http :as http]
             [io.pedestal.http :as bootstrap]
+            [clojure.data.json :as json]
             [io.pedestal.http.body-params :as body-params]
             [io.pedestal.http.route :as route]
             [ring.util.response :as ring-resp]))
@@ -35,16 +36,21 @@
   [request]
   (ring-resp/response "Hello World!"))
 
+(defn add-project
+  [request]
+  (prn (json/read-json (slurp (:body request))))
+  (ring-resp/created "http://fake-201-url" "Fake 201"))
+
 ;; Defines "/" and "/about" routes with their associated :get handlers.
 ;; The interceptors defined after the verb map (e.g., {:get home-page}
 ;; apply to / and its children (/about).
 (def common-interceptors [(body-params/body-params) http/html-body])
 
 ;; Tabular routes
-(def routes #{["/" :get (conj common-interceptors `home-page)]
-              ["/about" :get (conj common-interceptors `about-page)]
-              ["/projects" :get (conj common-interceptors `get-projects)]
-              ["/projects/:project-id" :get (conj common-interceptors `get-project)]})
+;; (def routes #{["/" :get (conj common-interceptors `home-page)]
+;;               ["/about" :get (conj common-interceptors `about-page)]
+;;               ["/projects" :get (conj common-interceptors `get-projects)]
+;;               ["/projects/:project-id" :get (conj common-interceptors `get-project)]})
 
 ;; Map-based routes
 ;(def routes `{"/" {:interceptors [(body-params/body-params) http/html-body]
@@ -52,10 +58,13 @@
 ;                   "/about" {:get about-page}}})
 
 ;; Terse/Vector-based routes
-;(def routes
-;  `[[["/" {:get home-page}
-;      ^:interceptors [(body-params/body-params) http/html-body]
-;      ["/about" {:get about-page}]]]])
+(def routes
+  `[[["/" {:get home-page}
+      ^:interceptors [(body-params/body-params) http/html-body]
+      ["/about" {:get about-page}]
+      ["/projects" {:get get-projects
+                    :post add-project}]
+      ["/projects/:project-id" {:get get-project}]]]])
 
 
 ;; Consumed by pedestal-example.server/create-server
