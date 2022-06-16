@@ -9,6 +9,7 @@
                  ;; Remove this line and uncomment one of the next lines to
                  ;; use Immutant or Tomcat instead of Jetty:
                  [io.pedestal/pedestal.jetty "0.5.10"]
+                 [org.clojure/data.json "0.2.6"]
                  ;; [io.pedestal/pedestal.immutant "0.5.10"]
                  ;; [io.pedestal/pedestal.tomcat "0.5.10"]
 

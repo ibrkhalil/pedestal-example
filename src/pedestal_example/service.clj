@@ -1,7 +1,8 @@
 (ns pedestal-example.service
   (:require [io.pedestal.http :as http]
-            [io.pedestal.http.route :as route]
+            [io.pedestal.http :as bootstrap]
             [io.pedestal.http.body-params :as body-params]
+            [io.pedestal.http.route :as route]
             [ring.util.response :as ring-resp]))
 
 (defn about-page
@@ -9,6 +10,26 @@
   (ring-resp/response (format "Clojure %s - served from %s"
                               (clojure-version)
                               (route/url-for ::about-page))))
+
+(def mock-project-collection
+  {:sleeping-cat
+   {:name "Sleeping cat project"
+    :framework "Pedestal"
+    :language "Clojure"
+    :repo "https://github.com/vampirekiddo/pedestal-example"}
+   :stinky-dog
+   {:name "Stinky Dog experiment"
+    :language "Groovy"
+    :repo "Some repo"}})
+
+(defn get-projects
+  [request]
+  (bootstrap/json-response mock-project-collection))
+
+(defn get-project
+  [request]
+  (let [projname (get-in request [:path-params :project-id])]
+    (bootstrap/json-response ((keyword projname) mock-project-collection))))
 
 (defn home-page
   [request]
@@ -21,7 +42,9 @@
 
 ;; Tabular routes
 (def routes #{["/" :get (conj common-interceptors `home-page)]
-              ["/about" :get (conj common-interceptors `about-page)]})
+              ["/about" :get (conj common-interceptors `about-page)]
+              ["/projects" :get (conj common-interceptors `get-projects)]
+              ["/projects/:project-id" :get (conj common-interceptors `get-project)]})
 
 ;; Map-based routes
 ;(def routes `{"/" {:interceptors [(body-params/body-params) http/html-body]
